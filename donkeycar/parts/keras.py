@@ -5,11 +5,13 @@ keras.py
 functions to run and train autopilots using keras
 
 """
-
+#import keras as kr
 from tensorflow.python.keras.layers import Input
+#from keras.layers import Input
 from tensorflow.python.keras.models import Model, load_model
-from tensorflow.python.keras.layers import Convolution2D
-from tensorflow.python.keras.layers import Dropout, Flatten, Dense
+from tensorflow.python.keras.models import Model, load_model
+from tensorflow.python.keras.layers import Convolution2D, Cropping2D
+from tensorflow.python.keras.layers import Dropout, Flatten, Dense, Lambda
 from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
 
 
@@ -22,7 +24,7 @@ class KerasPilot:
         pass
 
     def train(self, train_gen, val_gen,
-              saved_model_path, epochs=100, steps=100, train_split=0.8,
+              saved_model_path, epochs=1, steps=100, train_split=0.8,
               verbose=1, min_delta=.0005, patience=5, use_early_stop=True):
         """
         train_gen: generator that yields an array of images an array of
@@ -82,18 +84,33 @@ def default_linear():
     img_in = Input(shape=(120, 160, 3), name='img_in')
     x = img_in
 
+    #x = Cropping2D(cropping=((60,0), (0,0)))(x)
     # Convolution2D class name is an alias for Conv2D
-    x = Convolution2D(filters=24, kernel_size=(5, 5), strides=(2, 2), activation='relu')(x)
-    x = Convolution2D(filters=32, kernel_size=(5, 5), strides=(2, 2), activation='relu')(x)
-    x = Convolution2D(filters=64, kernel_size=(5, 5), strides=(2, 2), activation='relu')(x)
-    x = Convolution2D(filters=64, kernel_size=(3, 3), strides=(2, 2), activation='relu')(x)
-    x = Convolution2D(filters=64, kernel_size=(3, 3), strides=(1, 1), activation='relu')(x)
+    #x = Convolution2D(filters=24, kernel_size=(5, 5), strides=(2, 2), activation='relu')(x)
+    #x = Convolution2D(filters=32, kernel_size=(5, 5), strides=(2, 2), activation='relu')(x)
+    #x = Convolution2D(filters=64, kernel_size=(5, 5), strides=(2, 2), activation='relu')(x)
+    #x = Convolution2D(filters=64, kernel_size=(3, 3), strides=(2, 2), activation='relu')(x)
+    #x = Convolution2D(filters=64, kernel_size=(3, 3), strides=(1, 1), activation='relu')(x)
 
+    #x = Flatten(name='flattened')(x)
+    #x = Dense(units=100, activation='linear')(x)
+    #x = Dropout(rate=.1)(x)
+    #x = Dense(units=50, activation='linear')(x)
+    #x = Dropout(rate=.1)(x)
+    
+    x = Cropping2D(cropping=((60,0), (0,0)))(x) #trim 60 pixels off top
+    x = Lambda(lambda x: x/127.5 - 1.0)(x) # normalize and re-center
+    x = Convolution2D(24, (5,5), strides=(2,2), activation='relu')(x)
+    x = Convolution2D(32, (5,5), strides=(2,2), activation='relu')(x)
+    x = Convolution2D(64, (5,5), strides=(1,1), activation='relu')(x)
+    x = Convolution2D(64, (3,3), strides=(1,1), activation='relu')(x)
+    x = Convolution2D(64, (3,3), strides=(1,1), activation='relu')(x)
+    
     x = Flatten(name='flattened')(x)
-    x = Dense(units=100, activation='linear')(x)
-    x = Dropout(rate=.1)(x)
-    x = Dense(units=50, activation='linear')(x)
-    x = Dropout(rate=.1)(x)
+    x = Dense(100, activation='relu')(x)
+    x = Dropout(.1)(x)
+    x = Dense(50, activation='relu')(x)
+    x = Dropout(.1)(x)
     # categorical output of the angle
     angle_out = Dense(units=1, activation='linear', name='angle_out')(x)
 
