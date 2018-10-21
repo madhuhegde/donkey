@@ -34,7 +34,7 @@ class Vehicle:
                 Channel names to get from memory.
             outputs : list
                 Channel names to save to memory.
-            threaded : boolean
+            threaded : boolean/Users/madhuhegde/mycar/data/2269_cam-image_array_.jpg
                 If a part should be run in a separate thread.
             run_condition: boolean
                 If a part should be run at all.
